@@ -187,8 +187,32 @@ await room.remove();
 
 ## Recreating your resources
 
+This methods is useful when you want to recreate your resources. For example you have a resource collection that is not up to date and you want to recreate it.
+
+```javascript
+
+
+await mrm.recreateResources({
+    model:Building,
+    resourceType:"building",
+    parent:null,//<-- this is a root resource
+}); 
+
+//or you can recreate lover level resources
+await mrm.recreateResources({
+    model:Room,
+    resourceType:"room",
+    parent:{
+        localField:"building",
+        resourceType:"building",
+    },
+}); 
+
+```
+
 ## TODO
 
-- [] CI for unit testing(should work inmemory mongodb)
-- [] clearance like permit, allow, etc
-- [] typescript 
+- [ ] CI for unit testing(should work inmemory mongodb)
+- [ ] clearance like permit, allow, etc
+- [ ] typescript 
+- [ ] Build Resource Tree feature
