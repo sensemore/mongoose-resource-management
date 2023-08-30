@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Company = require('./company');
-const mongooseResourceManagement = require('../mongooseResourceManagement');
-const resourceTypes = require('../resourceTypes');
+const mrm = require('..');
+const resourceTypes = require('./resourceTypes');
 
 const schema = new mongoose.Schema({
     name: String,
@@ -9,7 +9,7 @@ const schema = new mongoose.Schema({
     company: { type: mongoose.ObjectId, ref: Company },
 
 });
-mongooseResourceManagement.registerResource({
+mrm.registerResource({
     schema,
     resourceType: resourceTypes.BUILDING,
     parent: {
@@ -19,5 +19,5 @@ mongooseResourceManagement.registerResource({
 });
 
 
-const Building = mongoose.model('Building', schema, 'buildings');
+const Building = mongoose.model('Building', schema, "buildings");
 module.exports = Building;

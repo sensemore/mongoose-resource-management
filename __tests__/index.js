@@ -1,22 +1,22 @@
 const mongoose = require('mongoose');
-const Company = require('../models/company');
-const Resource = require('../models/resource');
+const Company = require('../examples/company');
+const Building = require('../examples/building');
+const Resource = require('../examples/resource');
+const Department = require('../examples/department');
 const casual = require('casual');
-const resourceTypes = require('../resourceTypes');
-const mongooseResourceManagement = require('../mongooseResourceManagement');
+const resourceTypes = require('../examples/resourceTypes');
+const mrm = require('..');
 //pre test 
 beforeAll(async () => {
     await mongoose.connect('mongodb://localhost:27017/testDB', { useNewUrlParser: true, useUnifiedTopology: true });
     await mongoose.connection.dropDatabase();
 
-    mongooseResourceManagement.configure({
+    mrm.configure({
         refField: "ref",
         pathField: "path",
         resourceTypeField: "resourceType",
         collection: "resources",
     });
-
-
 
 });
 
@@ -25,7 +25,6 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
-    // await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
 });
 
@@ -39,10 +38,10 @@ test('save company', async () => {
     //act
 
     await company.save();
-    const path = `/companies/${company._id.toString()}`;
+    const path = `/${resourceTypes.COMPANY}/${company._id.toString()}`;
 
     //assert
-    const resources = await Resource.find({ ref: company._id, resourceType: 'Company' });
+    const resources = await Resource.find({ ref: company._id, resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(1);
     expect(resources[0].path).toBe(path);
 });
@@ -58,12 +57,12 @@ test('save with changes', async () => {
 
     //act
     await company.save();
-    const path = `/companies/${company._id.toString()}`;
+    const path = `/${resourceTypes.COMPANY}/${company._id.toString()}`;
     company.name = casual.company_name;
     await company.save();
 
     //assert
-    const resources = await Resource.find({ ref: company._id, resourceType: 'Company' });
+    const resources = await Resource.find({ ref: company._id, resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(1);
     expect(resources[0].path).toBe(path);
 });
@@ -80,7 +79,7 @@ test('remove company', async () => {
     await Company.findOneAndDelete({ _id: company._id });
 
     //assert
-    const resources = await Resource.find({ ref: company._id, resourceType: 'Company' });
+    const resources = await Resource.find({ ref: company._id, resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(0);
 });
 
@@ -94,12 +93,12 @@ test('find one and update', async () => {
     //act
     await company.save();
 
-    const path = `/companies/${company._id.toString()}`;
+    const path = `/${resourceTypes.COMPANY}/${company._id.toString()}`;
 
     await Company.findOneAndUpdate({ _id: company._id }, { name: casual.company_name });
 
     //assert
-    const resources = await Resource.find({ ref: company._id, resourceType: 'Company' });
+    const resources = await Resource.find({ ref: company._id, resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(1);
     expect(resources[0].path).toBe(path);
 });
@@ -114,11 +113,11 @@ test('find one and update no results', async () => {
 
     //act
     await company.save();
-    const path = `/companies/${company._id.toString()}`;
+    const path = `/${resourceTypes.COMPANY}/${company._id.toString()}`;
     await Company.findOneAndUpdate({ this_field: "doesnt_exists" }, { name: casual.company_name });
 
     //assert
-    const resources = await Resource.find({ ref: company._id, resourceType: 'Company' });
+    const resources = await Resource.find({ ref: company._id, resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(1);
     expect(resources[0].path).toBe(path);
 });
@@ -139,7 +138,7 @@ test('insert many', async () => {
     //act
     await Company.insertMany(companies);
     //assert
-    const resources = await Resource.find({ resourceType: 'Company' });
+    const resources = await Resource.find({ resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(createcount);
 });
 
@@ -162,7 +161,7 @@ test('delete one', async () => {
     await Company.deleteOne({ _id: company._id });
 
     //assert
-    const resources = await Resource.find({ resourceType: 'Company' });
+    const resources = await Resource.find({ resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(createcount - 1);
 });
 
@@ -190,7 +189,7 @@ test('delete many', async () => {
     await Company.deleteMany({ _id: { $in: deleteCompanies.map(c => c._id) } });
 
     //assert
-    const resources = await Resource.find({ resourceType: 'Company' });
+    const resources = await Resource.find({ resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(createCount - deleteCount);
 });
 
@@ -225,7 +224,7 @@ test('update many', async () => {
     });
 
     //assert
-    const resources = await Resource.find({ resourceType: 'Company' });
+    const resources = await Resource.find({ resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(createCount);
 });
 
@@ -255,7 +254,410 @@ test('update one', async () => {
     });
 
     //assert
-    const resources = await Resource.find({ resourceType: 'Company' });
+    const resources = await Resource.find({ resourceType: resourceTypes.COMPANY });
     expect(resources.length).toBe(createCount);
 });
+
+
+test('save building', async () => {
+    //arrange
+    const company = new Company({
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    });
+    //act
+    await company.save();
+
+    const building = new Building({
+        name: casual.company_name,
+        adress: casual.address,
+        company: company._id,
+    });
+    await building.save();
+
+    const path = `/${resourceTypes.COMPANY}/${company._id.toString()}/${resourceTypes.BUILDING}/${building._id.toString()}`;
+
+    //assert
+    const resources = await Resource.find({ ref: building._id, resourceType: resourceTypes.BUILDING });
+    expect(resources.length).toBe(1);
+    expect(resources[0].path).toBe(path);
+});
+
+test('save building with changes', async () => {
+    //arrange
+    const company = new Company({
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    });
+    //act
+    await company.save();
+
+    const building = new Building({
+        name: casual.company_name,
+        adress: casual.address,
+        company: company._id,
+    });
+    await building.save();
+
+    const path = `/${resourceTypes.COMPANY}/${company._id.toString()}/${resourceTypes.BUILDING}/${building._id.toString()}`;
+
+    building.name = casual.company_name;
+    await building.save();
+
+    //assert
+    const resources = await Resource.find({ ref: building._id, resourceType: resourceTypes.BUILDING });
+    expect(resources.length).toBe(1);
+    expect(resources[0].path).toBe(path);
+});
+
+test('insert many buildings', async () => {
+    //arrange
+    const company = new Company({
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    });
+    //act
+    await company.save();
+
+    const buildings = [];
+    const createcount = 10;
+    for (let i = 0; i < createcount; i++) {
+        buildings.push(new Building({
+            name: casual.company_name,
+            adress: casual.address,
+            company: company._id,
+        }));
+    }
+
+    await Building.insertMany(buildings);
+
+    //assert
+    const resources = await Resource.find({ resourceType: resourceTypes.BUILDING });
+    expect(resources.length).toBe(createcount);
+});
+
+
+test('delete one building', async () => {
+    //arrange
+    const company = new Company({
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    });
+    //act
+    await company.save();
+
+    const buildings = [];
+    const createcount = 10;
+    for (let i = 0; i < createcount; i++) {
+        buildings.push(new Building({
+            name: casual.company_name,
+            adress: casual.address,
+            company: company._id,
+        }));
+    }
+
+    await Building.insertMany(buildings);
+
+    const building = buildings[casual.integer(0, buildings.length - 1)];
+    await Building.deleteOne({ _id: building._id });
+
+    //assert
+    const resources = await Resource.find({ resourceType: resourceTypes.BUILDING });
+    expect(resources.length).toBe(createcount - 1);
+});
+
+
+test('delete many buildings', async () => {
+    //arrange
+    const company = new Company({
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    });
+    //act
+    await company.save();
+
+    const buildings = [];
+    const createcount = 10;
+    for (let i = 0; i < createcount; i++) {
+        buildings.push(new Building({
+            name: casual.company_name,
+            adress: casual.address,
+            company: company._id,
+        }));
+    }
+
+    await Building.insertMany(buildings);
+
+    const deleteBuildings = [];
+    const deletecount = 3;
+    for (let i = 0; i < deletecount; i++) {
+        deleteBuildings.push(buildings.splice(casual.integer(0, buildings.length - 1), 1)[0]);
+    }
+
+    await Building.deleteMany({ _id: { $in: deleteBuildings.map(c => c._id) } });
+
+    //assert
+    const resources = await Resource.find({ resourceType: resourceTypes.BUILDING });
+
+    expect(resources.length).toBe(createcount - deletecount);
+
+});
+
+test('update many buildings', async () => {
+    //arrange
+    const company = new Company({
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    });
+    //act
+    await company.save();
+
+    const buildings = Array(10).fill().map(() => new Building({
+        name: casual.company_name,
+        adress: casual.address,
+        company: company._id,
+    }));
+
+    await Building.insertMany(buildings);
+
+    const docs_to_update = buildings.splice(0, 3);
+
+    console.log(`Updating ${docs_to_update.length} buildings`);
+    await Building.updateMany({ _id: { $in: docs_to_update.map(c => c._id) } }, {
+        name: casual.company_name,
+        adress: casual.address,
+        company: company._id,
+    });
+
+    //assert
+    const resources = await Resource.find({ resourceType: resourceTypes.BUILDING });
+    console.log(`Found ${resources.length} buildings`);
+    expect(resources.length).toBe(10);
+});
+
+
+
+
+test('search buildings', async () => {
+    //arrange
+    const company_count = 10;
+    const building_count_per_company = 10;
+
+    const companies = Array(company_count).fill().map(() => new Company({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    }));
+    //should return only first companies buildings
+    const keys = [`/${resourceTypes.COMPANY}/${companies[0]._id.toString()}`];
+
+    await Company.insertMany(companies);
+
+    const buildings = [];
+
+    for (let i = 0; i < company_count; i++) {
+        for (let j = 0; j < building_count_per_company; j++) {
+            buildings.push(new Building({
+                name: casual.company_name,
+                adress: casual.address,
+                company: companies[i]._id,
+            }));
+        }
+    }
+
+    await Building.insertMany(buildings);
+
+    //act 
+
+    const search = await Building.aggregate([
+        {
+            $match: {
+                $and: [
+                    { name: { $regex: ".*" } },
+                    { adress: { $regex: ".*" } },
+                    { company: { $in: companies.map(c => c._id) } },
+                ]
+            }
+        },
+        ...mrm.getResourceFilters(resourceTypes.BUILDING, keys),
+    ]);
+
+    //assert
+    expect(search.length).toBe(building_count_per_company);
+
+});
+
+
+test('search buildings all', async () => {
+    //arrange
+    const company_count = 10;
+    const building_count_per_company = 10;
+
+    const companies = Array(company_count).fill().map(() => new Company({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    }));
+    //should return all buildings
+    const keys = [`/`];
+
+    await Company.insertMany(companies);
+
+    const buildings = [];
+
+    for (let i = 0; i < company_count; i++) {
+        for (let j = 0; j < building_count_per_company; j++) {
+            buildings.push(new Building({
+                name: casual.company_name,
+                adress: casual.address,
+                company: companies[i]._id,
+            }));
+        }
+    }
+
+    await Building.insertMany(buildings);
+
+    //act 
+
+    const search = await Building.aggregate([
+        {
+            $match: {
+                $and: [
+                    { name: { $regex: ".*" } },
+                    { adress: { $regex: ".*" } },
+                    { company: { $in: companies.map(c => c._id) } },
+                ]
+            }
+        },
+        ...mrm.getResourceFilters(resourceTypes.BUILDING, keys),
+
+    ]);
+
+    //assert
+    expect(search.length).toBe(company_count * building_count_per_company);
+
+});
+
+
+test('get resource', async () => {
+
+    //arrange
+    //create company , building and department
+    const company = new Company({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    });
+
+    await company.save();
+
+    const building = new Building({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        adress: casual.address,
+        company: company._id,
+    });
+
+    await building.save();
+
+    const department = new Department({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        building: building._id,
+    });
+
+    await department.save();
+
+    //act
+    let keys = [
+        '/not/exists',
+        `/${resourceTypes.COMPANY}/${company._id.toString()}/${resourceTypes.BUILDING}/${building._id.toString()}/${resourceTypes.DEPARTMENT}/${department._id.toString()}`
+];
+    let resource = await mrm.getResource(department._id, resourceTypes.DEPARTMENT, keys);
+
+    //assert
+    expect(resource).not.toBe(null);
+    expect(resource.ref).toEqual(department._id);
+    expect(resource.resourceType).toEqual(resourceTypes.DEPARTMENT);
+});
+
+
+
+test('get resource as root', async () => {
+
+    //arrange
+    //create company , building and department
+    const company = new Company({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    });
+
+    await company.save();
+
+    const building = new Building({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        adress: casual.address,
+        company: company._id,
+    });
+
+    await building.save();
+
+    const department = new Department({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        building: building._id,
+    });
+
+    await department.save();
+
+    //act
+    let keys = [`/`];
+    let resource = await mrm.getResource(department._id, resourceTypes.DEPARTMENT, keys);
+
+    //assert
+    expect(resource).not.toBe(null);
+    expect(resource.ref).toEqual(department._id);
+    expect(resource.resourceType).toEqual(resourceTypes.DEPARTMENT);
+});
+
+
+test('cant get resource', async () => {
+    //arrange
+    //create company , building and department
+    const company = new Company({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        founded: casual.date('YYYY-MM-DD'),
+    });
+
+    await company.save();
+
+    const building = new Building({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        adress: casual.address,
+        company: company._id,
+    });
+
+    await building.save();
+
+    const department = new Department({
+        _id: new mongoose.Types.ObjectId(),
+        name: casual.company_name,
+        building: building._id,
+    });
+
+    await department.save();
+
+    //act
+    let keys = [`/not/exists`];
+    let resource = await mrm.getResource(department._id, resourceTypes.DEPARTMENT, keys);
+
+    //assert
+    expect(resource).toBe(null);
+});
+
+
 

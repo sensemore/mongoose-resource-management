@@ -1,5 +1,5 @@
 {
-  "name": "resource",
+  "name": "mongoose-resource-management",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,10 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "casual": "^1.6.2",
     "mongoose": "^7.4.5"
   },
   "devDependencies": {
+    "casual": "^1.6.2",
     "jest": "^29.6.4"
   }
 }

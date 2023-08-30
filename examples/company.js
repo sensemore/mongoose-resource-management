@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
-const mongooseResourceManagement = require('../mongooseResourceManagement');
-const resourceTypes = require('../resourceTypes');
+const mrm = require('..');
+const resourceTypes = require('./resourceTypes');
 const schema = new mongoose.Schema({
     name: String,
     founded: Date
 
 });
-mongooseResourceManagement.registerResource({
+mrm.registerResource({
     schema,
     resourceType: resourceTypes.COMPANY,
     parent: null,

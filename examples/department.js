@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 const Building = require('./building');
-const mongooseResourceManagement = require('../mongooseResourceManagement');
-const resourceTypes = require('../resourceTypes');
+const mrm = require('..');
+const resourceTypes = require('./resourceTypes');
 const schema = new mongoose.Schema({
     name: String,
     building: { type: mongoose.ObjectId, ref: Building },
 });
-
-mongooseResourceManagement.registerResource({
+mrm.registerResource({
     schema,
     resourceType: resourceTypes.DEPARTMENT,
     parent: {
@@ -17,5 +16,5 @@ mongooseResourceManagement.registerResource({
 });
 
 
-const Department = mongoose.model('Department', schema, 'departments');
+const Department = mongoose.model('Department', schema, "departments");
 module.exports = Department;
