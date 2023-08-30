@@ -82,6 +82,7 @@ class ResourceManagement {
         }
         return path;
     }
+    
     registerResource({
         schema,
         resourceType,
