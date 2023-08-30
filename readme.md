@@ -1,4 +1,6 @@
+
 # Mongoose Resource Management(ABAC like)
+
 
 A simple resource management system for mongoose.  
 This is a work in progress.
@@ -171,3 +173,9 @@ await room.remove();
 //this will delete the resource from the resource collection
 ```
 
+
+## TODO
+
+- [] CI for unit testing(should work inmemory mongodb)
+- [] clearance like permit, allow, etc
+- [] typescript 
