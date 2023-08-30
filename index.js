@@ -36,7 +36,7 @@ function getResourceFilters(resourceType, keys) {
         };
 
     });
-   
+
     let stages = [{
         $lookup: {
             from: "resources",
@@ -49,7 +49,7 @@ function getResourceFilters(resourceType, keys) {
                             { $eq: ["$ref", "$$ref"] },
                             { $eq: ["$resourceType", resourceType] },
                             { $or: keyRegex }
-        
+
                         ]
                     }
                 }
@@ -63,6 +63,31 @@ function getResourceFilters(resourceType, keys) {
     return stages;
 }
 
+async function recreateResources({ model, resourceType, parent }) {
+    //get parents
+    if (!resourceType) {
+        throw new Error("resourceType is required");
+    }
+    return model.find().cursor().eachAsync(async doc => {
+        let resources = [];
+        const path = await getPath(doc, resourceType, parent);
+        resources.push({
+            [config.refField]: doc._id,
+            [config.resourceTypeField]: resourceType,
+            [config.pathField]: path
+        });
+        await config.mongoose.connection.db.collection(config.collection).updateOne({
+            [config.refField]: doc._id,
+            [config.resourceTypeField]: resourceType
+        }, {
+            $set: {
+                [config.refField]: doc._id,
+                [config.resourceTypeField]: resourceType,
+                [config.pathField]: path
+            }
+        }, { upsert: true });
+    })
+}
 
 async function getResource(ref, resourceType, keys) {
     let resource = await config.mongoose.connection.db.collection(config.collection).findOne({
@@ -239,5 +264,6 @@ module.exports = {
     getResourceFilters,
     getResource,
     getPath,
-    registerResource
+    registerResource,
+    recreateResources
 };

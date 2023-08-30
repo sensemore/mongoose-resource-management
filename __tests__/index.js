@@ -661,3 +661,70 @@ test('cant get resource', async () => {
 
 
 
+test('recreate root resources', async () => {
+    //arrange
+    let companies = []
+    
+    for (let i = 0; i < 10; i++) {
+        companies.push(new Company({
+            _id: new mongoose.Types.ObjectId(),
+            name: casual.company_name,
+            founded: casual.date('YYYY-MM-DD'),
+        }).toObject());
+    }
+
+    await mongoose.connection.db.collection(Company.collection.name).insertMany(companies);
+
+    //act
+    await mrm.recreateResources({
+        model:Company,
+        resourceType:resourceTypes.COMPANY,
+        parent:null
+    });
+
+    //assert
+    const resources = await Resource.find({ resourceType: resourceTypes.COMPANY });
+    expect(resources.length).toBe(companies.length);
+
+});
+
+test('recreate resources', async () => {
+    //arrange
+    let companies = []
+    for (let i = 0; i < 10; i++) {
+        companies.push(new Company({
+            _id: new mongoose.Types.ObjectId(),
+            name: casual.company_name,
+            founded: casual.date('YYYY-MM-DD')
+        }));
+    }
+    await Company.insertMany(companies);
+
+    let buildings = [];
+    for (let i = 0; i < 100; i++) {
+        buildings.push(new Building({
+            _id: new mongoose.Types.ObjectId(),
+            name: casual.company_name,
+            adress: casual.address,
+            company: companies[casual.integer(0, companies.length - 1)]._id,
+        }).toObject());
+    }
+
+    await mongoose.connection.db.collection(Building.collection.name).insertMany(buildings);
+
+    //act
+
+    await mrm.recreateResources({
+        model:Building,
+        resourceType:resourceTypes.BUILDING,
+        parent:{
+            localField:"company",
+            resourceType:resourceTypes.COMPANY
+        }
+    });
+
+    //assert
+    const resources = await Resource.find({ resourceType: resourceTypes.BUILDING });
+    expect(resources.length).toBe(buildings.length);
+
+});

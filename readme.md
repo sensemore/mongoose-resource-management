@@ -158,8 +158,19 @@ Rooms.aggregate([{
     $match:{
         name: /ro/i
     },
-    ...mrm.getResourceFilters("room",resourceKeys) //<-- this will return the filters that will limit the search to the resources that the user has access to
-}])
+}
+    ...mrm.getResourceFilters("room",resourceKeys), //<-- this will return the filters that will limit the search to the resources that the user has access to and add resource field to the document
+    //it doesnt consider if resource is found or not, it just adds the filters to the pipeline and unwind with preserveNullAndEmptyArrays:true
+    //this way you can still get the documents that are not in the resource collection
+    //but that means the user has access to all resources, consider updating the resource collection
+    {
+        $skip:10, //<--
+    },
+    {
+        $limit:10,
+    }
+
+])
 
 ```
 
@@ -173,6 +184,8 @@ await room.remove();
 //this will delete the resource from the resource collection
 ```
 
+
+## Recreating your resources
 
 ## TODO
 
