@@ -3,6 +3,10 @@
   "version": "1.0.2",
   "description": "",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sensemore/mongoose-resource-management"
+  },
   "scripts": {
     "test": "jest"
   },
