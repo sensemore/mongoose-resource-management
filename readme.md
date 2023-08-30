@@ -66,7 +66,7 @@ var mrm = require('mongoose-resource-management');
 
 //you can define whcih collection you would like to  use as resource collection
 //its a good practice to create indexes for the fields ref and path
-mrm.configure({
+mrm.configure(mongoose,{
    refField: "ref",
    pathField: "path",
    resourceTypeField: "type",
