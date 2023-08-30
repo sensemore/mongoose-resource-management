@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 class ResourceManagement {
 
     constructor() {
@@ -13,7 +12,6 @@ class ResourceManagement {
                 "$regexMatch": {
                     "input": "$path",
                     "regex": new RegExp(`^${x}`)
-
                 }
             };
 
@@ -46,7 +44,7 @@ class ResourceManagement {
         return stages;
     }
     async getResource(ref, resourceType, keys) {
-        let resource = await mongoose.connection.db.collection(this.collection).findOne({
+        let resource = await this.mongoose.connection.db.collection(this.collection).findOne({
             [this.refField]: ref,
             [this.resourceTypeField]: resourceType
         });
@@ -59,11 +57,12 @@ class ResourceManagement {
         return null;
     }
 
-    configure({ refField, pathField, resourceTypeField, collection }) {
+    configure(mongoose,{ refField, pathField, resourceTypeField, collection }) {
         this.refField = refField;
         this.pathField = pathField;
         this.resourceTypeField = resourceTypeField;
         this.collection = collection;
+        this.mongoose=mongoose;
     }
     async getPath(collection, refField, resourceTypeField, document, resourceType, parentResource) {
         let path = `/${resourceType}/${document._id.toString()}`;
@@ -71,7 +70,7 @@ class ResourceManagement {
         if (parentResource) {
             let ref = document[parentResource.localField];
 
-            let parentResourceDocument = await mongoose.connection.db.collection(collection).findOne({
+            let parentResourceDocument = await this.mongoose.connection.db.collection(collection).findOne({
                 [refField]: ref,
                 [resourceTypeField]: parentResource.resourceType
             });
@@ -100,12 +99,12 @@ class ResourceManagement {
                     [self.pathField]: path
                 });
             }
-            await mongoose.connection.db.collection(self.collection).insertMany(resources);
+            await self.mongoose.connection.db.collection(self.collection).insertMany(resources);
         });
 
         schema.post('save', async (doc) => {
             const path = await self.getPath(self.collection, self.refField, self.resourceTypeField, doc, resourceType, parent);
-            await mongoose.connection.db.collection(self.collection).updateOne({
+            await self.mongoose.connection.db.collection(self.collection).updateOne({
                 [self.refField]: doc._id,
                 [self.resourceTypeField]: resourceType
             }, {
@@ -123,7 +122,7 @@ class ResourceManagement {
                 return;
             }
             const path = await self.getPath(self.collection, self.refField, self.resourceTypeField, doc, resourceType, parent);
-            await mongoose.connection.db.collection(self.collection).updateOne({
+            await self.mongoose.connection.db.collection(self.collection).updateOne({
                 [self.refField]: doc._id,
                 [self.resourceTypeField]: resourceType
             }, {
@@ -140,7 +139,7 @@ class ResourceManagement {
             if (!doc) {
                 return;
             }
-            await mongoose.connection.db.collection(self.collection).deleteOne({
+            await self.mongoose.connection.db.collection(self.collection).deleteOne({
                 [self.refField]: doc._id,
                 [self.resourceTypeField]: resourceType
             });
@@ -151,7 +150,7 @@ class ResourceManagement {
             if (!doc) {
                 return;
             }
-            await mongoose.connection.db.collection(self.collection).deleteOne({
+            await self.mongoose.connection.db.collection(self.collection).deleteOne({
                 [self.refField]: doc._id,
                 [self.resourceTypeField]: resourceType
             });
@@ -162,7 +161,7 @@ class ResourceManagement {
             if (!doc) {
                 return;
             }
-            await mongoose.connection.db.collection(self.collection).deleteOne({
+            await self.mongoose.connection.db.collection(self.collection).deleteOne({
                 [self.refField]: doc._id,
                 [self.resourceTypeField]: resourceType
             });
@@ -174,7 +173,7 @@ class ResourceManagement {
                 return;
             }
             for (let doc of docs) {
-                let res = await mongoose.connection.db.collection(self.collection).deleteOne({
+                let res = await self.mongoose.connection.db.collection(self.collection).deleteOne({
                     [self.refField]: doc._id,
                     [self.resourceTypeField]: resourceType
                 });
@@ -187,7 +186,7 @@ class ResourceManagement {
                 return;
             }
             const path = await self.getPath(self.collection, self.refField, self.resourceTypeField, doc, resourceType, parent);
-            await mongoose.connection.db.collection(self.collection).updateOne({
+            await self.mongoose.connection.db.collection(self.collection).updateOne({
                 [self.refField]: doc._id,
                 [self.resourceTypeField]: resourceType
             }, {
@@ -206,7 +205,7 @@ class ResourceManagement {
             }
             for (let doc of docs) {
                 const path = await self.getPath(self.collection, self.refField, self.resourceTypeField, doc, resourceType, parent);
-                await mongoose.connection.db.collection(self.collection).updateOne({
+                await self.mongoose.connection.db.collection(self.collection).updateOne({
                     [self.refField]: doc._id,
                     [self.resourceTypeField]: resourceType
                 }, {
