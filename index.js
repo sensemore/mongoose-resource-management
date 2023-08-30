@@ -11,11 +11,21 @@ function configure({ refField, pathField, resourceTypeField, collection }) {
     config.pathField = pathField;
     config.resourceTypeField = resourceTypeField;
     config.collection = collection;
+    setSearchFilter();
+
 }
 
 function setMongoose(mongoose) {
     config.mongoose = mongoose;
+    setSearchFilter();
 }
+function setSearchFilter() {
+    config.mongoose.Aggregate.prototype.resourceFilter = function ({ resourceType, resourceKeys }) {
+        this.pipeline().push(...getResourceFilters(resourceType, resourceKeys));
+        return this;
+    };
+}
+
 function getResourceFilters(resourceType, keys) {
     let keyRegex = keys.map(x => {
         return {
@@ -26,29 +36,28 @@ function getResourceFilters(resourceType, keys) {
         };
 
     });
+   
     let stages = [{
         $lookup: {
             from: "resources",
             let: { ref: "$_id" },
             as: "resource",
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $and: [
-                                { $eq: ["$ref", "$$ref"] },
-                                { $eq: ["$resourceType", resourceType] },
-                                { $or: keyRegex }
-
-                            ]
-                        }
+            pipeline: [{
+                $match: {
+                    $expr: {
+                        $and: [
+                            { $eq: ["$ref", "$$ref"] },
+                            { $eq: ["$resourceType", resourceType] },
+                            { $or: keyRegex }
+        
+                        ]
                     }
                 }
-            ]
+            }]
 
         }
     },
-    { $unwind: "$resource" },
+    { $unwind: { path: "$resource", preserveNullAndEmptyArrays: true } }//we dont care if resource is not found it may slow down the query significantly
     ];
 
     return stages;
