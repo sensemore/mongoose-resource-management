@@ -91,7 +91,7 @@ async function recreateResources({ model, resourceType, parent }) {
 
 async function getResource(ref, resourceType, keys) {
     let resource = await config.mongoose.connection.db.collection(config.collection).findOne({
-        [config.refField]: ref,
+        [config.refField]: new config.mongoose.Types.ObjectId(ref),
         [config.resourceTypeField]: resourceType
     });
     if (!resource) {
