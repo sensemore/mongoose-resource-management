@@ -72,16 +72,16 @@ async function recreateResources({ model, resourceType, parent }) {
         let resources = [];
         const path = await getPath(doc, resourceType, parent);
         resources.push({
-            [config.refField]: doc._id,
+            [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
             [config.resourceTypeField]: resourceType,
             [config.pathField]: path
         });
         await config.mongoose.connection.db.collection(config.collection).updateOne({
-            [config.refField]: doc._id,
+            [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
             [config.resourceTypeField]: resourceType
         }, {
             $set: {
-                [config.refField]: doc._id,
+                [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
                 [config.resourceTypeField]: resourceType,
                 [config.pathField]: path
             }
@@ -110,7 +110,7 @@ async function getPath(document, resourceType, parentResource) {
         let ref = document[parentResource.localField];
 
         let parentResourceDocument = await config.mongoose.connection.db.collection(config.collection).findOne({
-            [config.refField]: ref,
+            [config.refField]: new config.mongoose.Types.ObjectId(ref),
             [config.resourceTypeField]: parentResource.resourceType
         });
         if (!parentResourceDocument) {
@@ -132,7 +132,7 @@ function registerResource({
         for (let doc of docs) {
             const path = await getPath(doc, resourceType, parent);
             resources.push({
-                [config.refField]: doc._id,
+                [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
                 [config.resourceTypeField]: resourceType,
                 [config.pathField]: path
             });
@@ -143,11 +143,11 @@ function registerResource({
     schema.post('save', async (doc) => {
         const path = await getPath(doc, resourceType, parent);
         await config.mongoose.connection.db.collection(config.collection).updateOne({
-            [config.refField]: doc._id,
+            [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
             [config.resourceTypeField]: resourceType
         }, {
             $set: {
-                [config.refField]: doc._id,
+                [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
                 [config.resourceTypeField]: resourceType,
                 [config.pathField]: path
             }
@@ -161,11 +161,11 @@ function registerResource({
         }
         const path = await getPath(doc, resourceType, parent);
         await config.mongoose.connection.db.collection(config.collection).updateOne({
-            [config.refField]: doc._id,
+            [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
             [config.resourceTypeField]: resourceType
         }, {
             $set: {
-                [config.refField]: doc._id,
+                [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
                 [config.resourceTypeField]: resourceType,
                 [config.pathField]: path
             }
@@ -178,7 +178,7 @@ function registerResource({
             return;
         }
         await config.mongoose.connection.db.collection(config.collection).deleteOne({
-            [config.refField]: doc._id,
+            [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
             [config.resourceTypeField]: resourceType
         });
     });
@@ -189,7 +189,7 @@ function registerResource({
             return;
         }
         await config.mongoose.connection.db.collection(config.collection).deleteOne({
-            [config.refField]: doc._id,
+            [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
             [config.resourceTypeField]: resourceType
         });
     });
@@ -200,7 +200,7 @@ function registerResource({
             return;
         }
         await config.mongoose.connection.db.collection(config.collection).deleteOne({
-            [config.refField]: doc._id,
+            [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
             [config.resourceTypeField]: resourceType
         });
     });
@@ -212,7 +212,7 @@ function registerResource({
         }
         for (let doc of docs) {
             await config.mongoose.connection.db.collection(config.collection).deleteOne({
-                [config.refField]: doc._id,
+                [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
                 [config.resourceTypeField]: resourceType
             });
         }
@@ -225,7 +225,7 @@ function registerResource({
         }
         const path = await getPath(doc, resourceType, parent);
         await config.mongoose.connection.db.collection(config.collection).updateOne({
-            [config.refField]: doc._id,
+            [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
             [config.resourceTypeField]: resourceType
         }, {
             $set: {
@@ -244,11 +244,11 @@ function registerResource({
         for (let doc of docs) {
             const path = await getPath(doc, resourceType, parent);
             await config.mongoose.connection.db.collection(config.collection).updateOne({
-                [config.refField]: doc._id,
+                [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
                 [config.resourceTypeField]: resourceType
             }, {
                 $set: {
-                    [config.refField]: doc._id,
+                    [config.refField]: new config.mongoose.Types.ObjectId(doc._id),
                     [config.resourceTypeField]: resourceType,
                     [config.pathField]: path
                 }
