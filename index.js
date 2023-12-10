@@ -113,10 +113,10 @@ async function getPath(document, resourceType, parentResource) {
             [config.refField]: ref,
             [config.resourceTypeField]: parentResource.resourceType
         });
-        if (!parentResourceDocument && !parentResource.optional) {
-            throw new Error(`parent resource not found for ${resourceType}`);
-        } else {
+        if (parentResourceDocument) {
             path = `${parentResourceDocument[config.pathField]}${path}`;
+        } else if (!parentResource.optional) {
+            throw new Error(`parent resource not found for ${resourceType}`);
         }
     }
     return path;
