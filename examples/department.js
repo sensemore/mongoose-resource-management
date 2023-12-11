@@ -11,7 +11,8 @@ mrm.registerResource({
     resourceType: resourceTypes.DEPARTMENT,
     parent: {
         resourceType: resourceTypes.BUILDING,
-        localField: "building"
+        localField: "building",
+        optional: true
     }
 });
 

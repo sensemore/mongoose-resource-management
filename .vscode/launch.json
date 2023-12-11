@@ -1,0 +1,14 @@
+{
+    "configurations": [
+    {
+        "name": "Launch  Test Program",
+        "program": "${workspaceFolder}/examples/index.js",
+        "request": "launch",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "type": "node",
+        "runtimeExecutable": "/home/ozan/.nvm/versions/node/v19.9.0/bin/node"
+    }
+    ]
+}

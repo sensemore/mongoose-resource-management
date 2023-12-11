@@ -1,22 +1,75 @@
-const config = {
+let config = {
     refField: "ref",
     pathField: "path",
     resourceTypeField: "resourceType",
     collection: "resources",
+    users: {
+        refCollection: "users",
+        refField: "_id",
+        userResources: "userResources",
+
+    },
     mongoose: require('mongoose')
 };
 
-function configure({ refField, pathField, resourceTypeField, collection }) {
-    config.refField = refField;
-    config.pathField = pathField;
-    config.resourceTypeField = resourceTypeField;
-    config.collection = collection;
-    setSearchFilter();
 
+
+function deepMerge(target, source) {
+    if (typeof target !== "object" || target === null) {
+        return source;
+    }
+
+    if (typeof source !== "object" || source === null) {
+        return target;
+    }
+
+    for (const key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+            const targetValue = target[key];
+            const sourceValue = source[key];
+
+            if (Object.prototype.hasOwnProperty.call(target, key) &&
+                typeof targetValue === "object" &&
+                typeof sourceValue === "object") {
+                target[key] = deepMerge(targetValue, sourceValue);
+            } else {
+                target[key] = sourceValue;
+            }
+        }
+    }
+
+    return target;
 }
+
+
+function configure({ refField, pathField, resourceTypeField, collection, users }) {
+    let newConfig = {
+        refField,
+        pathField,
+        resourceTypeField,
+        collection,
+        users
+    }
+    config = deepMerge(config, newConfig);
+    setSearchFilter();
+}
+
+
+async function checkAccessByKeys(document, resourceType, keys) {
+    if (!Array.isArray(keys)) {
+        keys = [keys]
+    }
+    const resource = await getResource(document._id, resourceType, keys);
+    if (!resource) {
+        return false;
+    }
+    return true;
+}
+
 
 function setMongoose(mongoose) {
     config.mongoose = mongoose;
+
     setSearchFilter();
 }
 function setSearchFilter() {
@@ -49,7 +102,6 @@ function getResourceFilters(resourceType, keys) {
                             { $eq: ["$ref", "$$ref"] },
                             { $eq: ["$resourceType", resourceType] },
                             { $or: keyRegex }
-
                         ]
                     }
                 }
@@ -91,7 +143,7 @@ async function recreateResources({ model, resourceType, parent }) {
 
 async function getResource(ref, resourceType, keys) {
     let resource = await config.mongoose.connection.collection(config.collection).findOne({
-        [config.refField]: ref,
+        [config.refField]: new config.mongoose.Types.ObjectId(ref),
         [config.resourceTypeField]: resourceType
     });
     if (!resource) {
@@ -125,7 +177,7 @@ async function getPath(document, resourceType, parentResource) {
 function registerResource({
     schema,
     resourceType,
-    parent // { resourceType, localField }
+    parent // { resourceType, localField, optional }
 }) {
 
     schema.post('insertMany', async (docs) => {
@@ -266,5 +318,6 @@ module.exports = {
     getResource,
     getPath,
     registerResource,
-    recreateResources
+    recreateResources,
+    checkAccessByKeys
 };
