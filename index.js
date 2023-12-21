@@ -80,15 +80,13 @@ function setSearchFilter() {
 }
 
 function getResourceFilters(resourceType, keys) {
-    let keyRegex = keys.map(x => {
-        return {
-            "$regexMatch": {
-                "input": "$path",
-                "regex": new RegExp(`^${x}`)
-            }
-        };
+    let keyRegex = {
+        "$regexMatch": {
+            "input": "$path",
+            "regex": new RegExp(`^${keys.join('|')}`)
+        }
+    };
 
-    });
 
     let stages = [{
         $lookup: {
@@ -100,7 +98,7 @@ function getResourceFilters(resourceType, keys) {
                     $expr: {
                         $and: [
                             { $eq: ["$ref", "$$ref"] },
-                            { $eq: ["$resourceType", resourceType] },
+                            { $eq: [`$${config.resourceTypeField}`, resourceType] },
                             { $or: keyRegex }
                         ]
                     }
