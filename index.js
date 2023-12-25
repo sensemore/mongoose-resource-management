@@ -269,7 +269,7 @@ function registerResource({
         }
     });
 
-    schema.pre('updateOne', async function () {
+    schema.post('updateOne', async function () {
         const doc = await this.model.findOne(this.getQuery());
         if (!doc) {
             return;
@@ -287,7 +287,7 @@ function registerResource({
         }, { upsert: true });
     });
 
-    schema.pre('updateMany', async function () {
+    schema.post('updateMany', async function () {
         const docs = await this.model.find(this.getQuery());
         if (!docs) {
             return;
